@@ -1,5 +1,6 @@
 package com.example.astronomicalreferencebook
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -11,7 +12,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
@@ -20,6 +20,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -63,18 +64,11 @@ class AdvertisementViewModel : ViewModel(){
     }
 
     fun likeAdvertisement(advertisement: AdvertisementItem) {
-        val updatedList = displayedAdvertisements.map {
-            if (it.id == advertisement.id) {
-                it.copy(likes = it.likes + 1)
-            } else {
-                it
-            }
-        }
-        displayedAdvertisements = updatedList
+        advertisement.likes++
     }
 
     fun updateRandomNews() {
-        val unusedAdvertisements = advertisements - displayedAdvertisements
+        val unusedAdvertisements = advertisements - displayedAdvertisements.toSet()
         val randomIndex = Random.nextInt(displayedAdvertisements.size)
         val randomAdvertisements = unusedAdvertisements.random()
         displayedAdvertisements = displayedAdvertisements.toMutableList().also {
@@ -103,8 +97,10 @@ private fun AdvertisementWindow(viewModel: AdvertisementViewModel = viewModel())
     }
 }
 
+@SuppressLint("UnrememberedMutableState")
 @Composable
 private fun Advertisement(modifier: Modifier = Modifier, advertisement: AdvertisementItem, onLike: (AdvertisementItem) -> Unit) {
+    var likes by mutableIntStateOf(advertisement.likes)
     Card(
         shape = RoundedCornerShape(15.dp),
         modifier = modifier
@@ -136,12 +132,15 @@ private fun Advertisement(modifier: Modifier = Modifier, advertisement: Advertis
                 Box(
                     modifier = Modifier
                         .background(Color.Blue.copy(alpha = 0.5f))
-                        .clickable { onLike(advertisement) }
+                        .clickable {
+                            onLike(advertisement)
+                            likes++
+                        }
                         .padding(8.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "Likes: ${advertisement.likes}",
+                        text = "Likes: ${likes}",
                         color = Color.White
                     )
                 }
