@@ -1,17 +1,34 @@
 package com.example.astronomicalreferencebook
 
+import android.content.Context
+import android.opengl.GLSurfaceView
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.delay
 
-@Composable
+class SquvareGL
+{
+    @Composable
+    fun OpenGLView(context: Context) {
+        AndroidView(factory = {
+            GLSurfaceView(context).apply {
+                setEGLContextClientVersion(2)
+                setRenderer(GL(context))
+                renderMode = GLSurfaceView.RENDERMODE_CONTINUOUSLY
+            }
+        })
+    }
+}
+
+/*@Composable
 fun AdvertisementWindow(viewModel: AdvertisementViewModel = viewModel()) {
-    LaunchedEffect(Unit) {
+    /*LaunchedEffect(Unit) {
         while (true) {
             delay(5000)
             viewModel.updateRandomNews()
@@ -26,5 +43,5 @@ fun AdvertisementWindow(viewModel: AdvertisementViewModel = viewModel()) {
             Advertisement(modifier = Modifier.weight(1f), advertisement = viewModel.displayedAdvertisements[2], onLike = { viewModel.likeAdvertisement(it) })
             Advertisement(modifier = Modifier.weight(1f), advertisement = viewModel.displayedAdvertisements[3], onLike = { viewModel.likeAdvertisement(it) })
         }
-    }
-}
+    }*/
+}*/
