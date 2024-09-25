@@ -10,7 +10,7 @@ import javax.microedition.khronos.opengles.GL10
 
 class GL(private val context: Context) : GLSurfaceView.Renderer {
     private lateinit var square: Square
-    var cubeAngle = 0f
+    private lateinit var cube: Cube
 
     private val projectionMatrix = FloatArray(16)
     private val viewMatrix = FloatArray(16)
@@ -20,21 +20,28 @@ class GL(private val context: Context) : GLSurfaceView.Renderer {
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
         GLES20.glClearColor(0f, 0f, 0f, 1f)
         GLES20.glEnable(GLES20.GL_DEPTH_TEST)
+        GLES20.glClearDepthf(1.0f)
         GLES20.glDepthFunc(GLES20.GL_ALWAYS)
 
         square = Square(context)
+        cube = Cube()
         square.initialize()
+        cube.initialize()
     }
 
     override fun onDrawFrame(gl: GL10?) {
-        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT or GLES20.GL_DEPTH_BUFFER_BIT)
-
-        // Рисование текстурированного квадрата (фон)
         Matrix.setIdentityM(modelMatrix, 0)
-        Matrix.scaleM(modelMatrix, 0, 15f, 10f, 1f) // Увеличение масштаба
+        Matrix.scaleM(modelMatrix, 0, 15f, 10f, 1f)
         Matrix.multiplyMM(mVPMatrix, 0, projectionMatrix, 0, viewMatrix, 0)
         Matrix.multiplyMM(mVPMatrix, 0, mVPMatrix, 0, modelMatrix, 0)
         square.draw(mVPMatrix)
+
+        Matrix.setIdentityM(modelMatrix, 0)
+        Matrix.translateM(modelMatrix, 0, 0f, 0f, -1f)
+        Matrix.rotateM(modelMatrix, 0, 45f, 0.1f, 0.1f, 0f)
+        Matrix.multiplyMM(mVPMatrix, 0, projectionMatrix, 0, viewMatrix, 0)
+        Matrix.multiplyMM(mVPMatrix, 0, mVPMatrix, 0, modelMatrix, 0)
+        cube.draw(mVPMatrix)
     }
 
     override fun onSurfaceChanged(gl: GL10?, width: Int, height: Int) {

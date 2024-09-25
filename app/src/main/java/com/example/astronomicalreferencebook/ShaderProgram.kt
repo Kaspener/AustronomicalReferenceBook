@@ -16,13 +16,8 @@ class ShaderProgram(vertexShaderCode: String, fragmentShaderCode: String) {
             GLES20.glLinkProgram(it)
         }
 
-        // Check for linking errors
         val linkStatus = IntArray(1)
         GLES20.glGetProgramiv(programId, GLES20.GL_LINK_STATUS, linkStatus, 0)
-        if (linkStatus[0] == GLES20.GL_FALSE) {
-            val errorMessage = GLES20.glGetProgramInfoLog(programId)
-            Log.e("com.eugene.astronomicalhandbook.opengl.ShaderProgram", "Error linking program: $errorMessage")
-        }
     }
 
     fun use() {
@@ -36,10 +31,6 @@ class ShaderProgram(vertexShaderCode: String, fragmentShaderCode: String) {
 
         val compileStatus = IntArray(1)
         GLES20.glGetShaderiv(shader, GLES20.GL_COMPILE_STATUS, compileStatus, 0)
-        if (compileStatus[0] == GLES20.GL_FALSE) {
-            val errorMessage = GLES20.glGetShaderInfoLog(shader)
-            Log.e("com.eugene.astronomicalhandbook.opengl.ShaderProgram", "Error compiling shader: $errorMessage")
-        }
 
         return shader
     }
@@ -55,10 +46,6 @@ class ShaderProgram(vertexShaderCode: String, fragmentShaderCode: String) {
 
             val linkStatus = IntArray(1)
             GLES20.glGetProgramiv(programId, GLES20.GL_LINK_STATUS, linkStatus, 0)
-            if (linkStatus[0] == GLES20.GL_FALSE) {
-                val errorMessage = GLES20.glGetProgramInfoLog(programId)
-                Log.e("com.eugene.astronomicalhandbook.opengl.ShaderProgram", "Error linking program: $errorMessage")
-            }
         }
     }
 
