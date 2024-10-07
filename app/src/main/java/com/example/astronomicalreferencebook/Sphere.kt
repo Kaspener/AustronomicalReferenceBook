@@ -8,7 +8,7 @@ import java.nio.ShortBuffer
 import kotlin.math.cos
 import kotlin.math.sin
 
-class Sphere(private val latitudeBands: Int = 30, private val longitudeBands: Int = 30, private val radius: Float = 1.0f) {
+class Sphere(private val latitudeBands: Int = 40, private val longitudeBands: Int = 40, private val radius: Float = 1.0f) {
     private lateinit var shaderProgram: ShaderProgram
     private lateinit var vertexBuffer: FloatBuffer
     private lateinit var indexBuffer: ShortBuffer
