@@ -114,7 +114,7 @@ class GL(private val context: Context) : GLSurfaceView.Renderer {
         sun.draw(mVPMatrix, textureId)
 
         // Отрисовка планет с орбитами
-        for (i in 1 until planets.size) {
+        for (i in 0 until planets.size) {
             // Отрисовка орбиты
             if (i == 3) continue
             drawOrbit(orbitRadii[i])
