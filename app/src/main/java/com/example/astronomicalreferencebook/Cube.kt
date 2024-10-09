@@ -23,14 +23,14 @@ class Cube {
     )
 
     private val colors = floatArrayOf(
-        0.8f, 1f, 0f, 1f,    // 0
-        1f, 0.8f, 0f, 1f,    // 1
-        0.8f, 1f, 1f, 1f,    // 2
-        1f, 0.8f, 0f, 1f,    // 3
-        0.8f, 1f, 0f, 1f,    // 4
-        1f, 0.8f, 0f, 1f,    // 5
-        0.8f, 1f, 1f, 1f,    // 6
-        1f, 0.8f, 0f, 1f     // 7
+        0.8f, 1f, 0f, 0.2f,    // 0
+        1f, 0.8f, 0f, 0.2f,    // 1
+        0.8f, 1f, 1f, 0.2f,    // 2
+        1f, 0.8f, 0f, 0.2f,    // 3
+        0.8f, 1f, 0f, 0.2f,    // 4
+        1f, 0.8f, 0f, 0.2f,    // 5
+        0.8f, 1f, 1f, 0.2f,    // 6
+        1f, 0.8f, 0f, 0.2f     // 7
     )
 
     private val indices = shortArrayOf(

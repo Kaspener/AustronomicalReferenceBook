@@ -17,18 +17,23 @@ import kotlin.math.sin
 
 class GL(private val context: Context) : GLSurfaceView.Renderer {
     private lateinit var square: Square
+    private lateinit var cube: Cube
     private var textureId: Int = 0
+    var selectedPlanet = 0
 
     private val projectionMatrix = FloatArray(16)
     private val viewMatrix = FloatArray(16)
     private val modelMatrix = FloatArray(16)
     private val mVPMatrix = FloatArray(16)
 
-    private lateinit var sun: Sphere
     private lateinit var planets: List<Sphere>
+    fun planetsSize(): Int {
+        return planets.size
+    }
     private lateinit var planetTextures: IntArray
-    private val planetAngles = FloatArray(9)
+    private val planetAngles = FloatArray(10)
     private val orbitRadii = floatArrayOf(
+        0f, //sun
         1.0f,  // Mercury
         1.8f,  // Venus
         2.6f,  // Earth
@@ -42,6 +47,7 @@ class GL(private val context: Context) : GLSurfaceView.Renderer {
 
 
     private val rotationSpeeds = floatArrayOf(
+        0f, //sun
         2f,  // Mercury
         1.5f, // Venus
         1.2f, // Earth
@@ -52,7 +58,7 @@ class GL(private val context: Context) : GLSurfaceView.Renderer {
         0.6f, // Neptune
         0.5f  // Pluto
     )
-    private val planetRotationSpeeds = FloatArray(9) { 10f }
+    private val planetRotationSpeeds = FloatArray(10) { 10f }
 
     private var lineProgram: Int = 0
     private var moonRotationAngle = 0f
@@ -62,10 +68,11 @@ class GL(private val context: Context) : GLSurfaceView.Renderer {
         GLES20.glEnable(GLES20.GL_DEPTH_TEST)
         GLES20.glDepthFunc(GLES20.GL_ALWAYS)
 
-        sun = Sphere(radius = 0.6f)
-        sun.initialize()
+        //sun = Sphere(radius = 0.6f)
+        //sun.initialize()
 
         planets = listOf(
+            Sphere(radius = 0.6f),
             Sphere(radius = 0.3f),
             Sphere(radius = 0.5f),
             Sphere(radius = 0.5f),
@@ -79,27 +86,33 @@ class GL(private val context: Context) : GLSurfaceView.Renderer {
 
         planets.forEach { it.initialize() }
 
-        planetTextures = IntArray(9)
-        planetTextures[0] = loadTexture(context, R.drawable.mercury)
-        planetTextures[1] = loadTexture(context, R.drawable.venus)
-        planetTextures[2] = loadTexture(context, R.drawable.earth)
-        planetTextures[3] = loadTexture(context, R.drawable.moon)
-        planetTextures[4] = loadTexture(context, R.drawable.mars)
-        planetTextures[5] = loadTexture(context, R.drawable.jupiter)
-        planetTextures[6] = loadTexture(context, R.drawable.saturn)
-        planetTextures[7] = loadTexture(context, R.drawable.uranus)
-        planetTextures[8] = loadTexture(context, R.drawable.neptune)
+        planetTextures = IntArray(10)
+        planetTextures[0] = loadTexture(context, R.drawable.sun)
+        planetTextures[1] = loadTexture(context, R.drawable.mercury)
+        planetTextures[2] = loadTexture(context, R.drawable.venus)
+        planetTextures[3] = loadTexture(context, R.drawable.earth)
+        planetTextures[4] = loadTexture(context, R.drawable.moon)
+        planetTextures[5] = loadTexture(context, R.drawable.mars)
+        planetTextures[6] = loadTexture(context, R.drawable.jupiter)
+        planetTextures[7] = loadTexture(context, R.drawable.saturn)
+        planetTextures[8] = loadTexture(context, R.drawable.uranus)
+        planetTextures[9] = loadTexture(context, R.drawable.neptune)
 
-        textureId = loadTexture(context, R.drawable.sun)
+        //textureId = loadTexture(context, R.drawable.sun)
 
         square = Square(context)
         square.initialize()
+
+        cube = Cube()
+        cube.initialize()
 
         lineProgram = loadLineShaderProgram()
     }
 
     override fun onDrawFrame(gl: GL10?) {
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT or GLES20.GL_DEPTH_BUFFER_BIT)
+        GLES20.glEnable(GLES20.GL_BLEND)
+        GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA)
 
         Matrix.setIdentityM(modelMatrix, 0)
         Matrix.scaleM(modelMatrix, 0, 15f, 10f, 1f)
@@ -107,16 +120,28 @@ class GL(private val context: Context) : GLSurfaceView.Renderer {
         Matrix.multiplyMM(mVPMatrix, 0, mVPMatrix, 0, modelMatrix, 0)
         square.draw(mVPMatrix)
 
+
         Matrix.setIdentityM(modelMatrix, 0)
         Matrix.translateM(modelMatrix, 0, 0f, 0f, -5f) // Sun at the center
         Matrix.multiplyMM(mVPMatrix, 0, projectionMatrix, 0, viewMatrix, 0)
         Matrix.multiplyMM(mVPMatrix, 0, mVPMatrix, 0, modelMatrix, 0)
-        sun.draw(mVPMatrix, textureId)
+        planets[0].draw(mVPMatrix, planetTextures[0]) //sun
+
+        if (selectedPlanet == 0) {
+            Matrix.setIdentityM(modelMatrix, 0)
+            Matrix.translateM(modelMatrix, 0, 0f, 0f, -1f)
+            val scaleFactor = planets[0].radius * 0.7f
+            Matrix.scaleM(modelMatrix, 0, scaleFactor, scaleFactor, scaleFactor)
+            Matrix.rotateM(modelMatrix, 0, 45f, 0.1f, 0.1f, 0f)
+            Matrix.multiplyMM(mVPMatrix, 0, projectionMatrix, 0, viewMatrix, 0)
+            Matrix.multiplyMM(mVPMatrix, 0, mVPMatrix, 0, modelMatrix, 0)
+            cube.draw(mVPMatrix)
+        }
 
         // Отрисовка планет с орбитами
-        for (i in 0 until planets.size) {
+        for (i in 1 until planets.size) {
             // Отрисовка орбиты
-            if (i == 3) continue
+            if (i == 4) continue
             drawOrbit(orbitRadii[i])
 
             Matrix.setIdentityM(modelMatrix, 0)
@@ -143,13 +168,25 @@ class GL(private val context: Context) : GLSurfaceView.Renderer {
             Matrix.multiplyMM(mVPMatrix, 0, mVPMatrix, 0, modelMatrix, 0)
             planets[i].draw(mVPMatrix, planetTextures[i]) // Повторная отрисовка с учётом вращения
 
+            if (selectedPlanet == i) {
+                Matrix.setIdentityM(modelMatrix, 0)
+                Matrix.translateM(modelMatrix, 0, x, y, -5f) // Позиционирование куба в точку планеты
+                val scaleFactor = planets[i].radius * 1.2f // Масштабируем куб в зависимости от радиуса планеты
+                Matrix.scaleM(modelMatrix, 0, scaleFactor, scaleFactor, scaleFactor)
+                Matrix.rotateM(modelMatrix, 0, 45f, 0f, 1f, 0f) // Поворот куба
+                Matrix.multiplyMM(mVPMatrix, 0, projectionMatrix, 0, viewMatrix, 0)
+                Matrix.multiplyMM(mVPMatrix, 0, mVPMatrix, 0, modelMatrix, 0)
+
+                cube.draw(mVPMatrix)
+            }
+
             // Специальный случай для Земли и Луны
-            if (i == 2) {
+            if (i == 3) {
                 // Отрисовка Луны
                 Matrix.setIdentityM(modelMatrix, 0)
 
                 // Позиционирование Луны на основе положения Земли
-                val moonAngle = planetAngles[3]
+                val moonAngle = planetAngles[4]
                 val moonRadius = 0.5f
                 val moonX = (radius * cos(Math.toRadians(angle.toDouble())).toFloat()) + (moonRadius * cos(Math.toRadians(moonAngle.toDouble())).toFloat())
                 val moonY = (radius * sin(Math.toRadians(angle.toDouble())).toFloat()) + (moonRadius * sin(Math.toRadians(moonAngle.toDouble())).toFloat())
@@ -164,13 +201,26 @@ class GL(private val context: Context) : GLSurfaceView.Renderer {
                 Matrix.multiplyMM(mVPMatrix, 0, mVPMatrix, 0, modelMatrix, 0)
 
                 // Отрисовка Луны
-                planets[3].draw(mVPMatrix, planetTextures[3])
-                planetAngles[3] = (planetAngles[3] + 2f) % 360
+                planets[4].draw(mVPMatrix, planetTextures[4])
+                planetAngles[4] = (planetAngles[4] + 2f) % 360
 
                 // Обновление угла вращения Луны
                 moonRotationAngle = (moonRotationAngle + 1f) % 360
+
+                if (selectedPlanet == 4) {
+                    Matrix.setIdentityM(modelMatrix, 0)
+                    Matrix.translateM(modelMatrix, 0, moonX, moonY, -5f)
+                    val scaleFactor = planets[4].radius * 1.2f
+                    Matrix.scaleM(modelMatrix, 0, scaleFactor, scaleFactor, scaleFactor)
+                    Matrix.rotateM(modelMatrix, 0, 45f, 0f, 1f, 0f) // Поворот куба
+                    Matrix.multiplyMM(mVPMatrix, 0, projectionMatrix, 0, viewMatrix, 0)
+                    Matrix.multiplyMM(mVPMatrix, 0, mVPMatrix, 0, modelMatrix, 0)
+
+                    cube.draw(mVPMatrix)
+                }
             }
         }
+        GLES20.glDisable(GLES20.GL_BLEND)
     }
     private fun drawOrbit(radius: Float) {
         val numPoints = 100

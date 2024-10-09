@@ -24,7 +24,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.astronomicalreferencebook.SquvareGL.Screen
 import kotlinx.coroutines.delay
 
 class SquvareGL {
@@ -58,15 +57,52 @@ class SquvareGL {
 
     @Composable
     fun OpenGLView(context: Context) {
+        val renderer = remember { GL(context) }
         Box(modifier = Modifier.fillMaxSize()) { // Используем Box для наложения элементов
             AndroidView(factory = {
                 GLSurfaceView(context).apply {
                     setEGLContextClientVersion(2)
-                    setRenderer(GL(context))
+                    setRenderer(renderer)
                     renderMode = GLSurfaceView.RENDERMODE_CONTINUOUSLY
                 }
-            })
+            }, modifier = Modifier.fillMaxSize())
 
+            // Добавляем 3 кнопки внизу
+            Row(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter) // Расположить кнопки внизу
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
+                Button(
+                    onClick = {
+                        var temp = renderer.selectedPlanet - 1
+                        if (temp < 0) temp = renderer.planetsSize()-1
+                        renderer.selectedPlanet = (temp)%renderer.planetsSize()
+                              },
+                    modifier = Modifier.weight(0.5f)
+                ) {
+                    Text("◀")
+                }
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Button(
+                    onClick = { /* Тут будет модель Фонга */ },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("Информация")
+                }
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Button(
+                    onClick = { renderer.selectedPlanet = (renderer.selectedPlanet + 1)%renderer.planetsSize() },
+                    modifier = Modifier.weight(0.5f)
+                ) {
+                    Text("▶")
+                }
+            }
         }
     }
 
