@@ -18,7 +18,6 @@ import kotlin.math.sin
 class GL(private val context: Context) : GLSurfaceView.Renderer {
     private lateinit var square: Square
     private lateinit var cube: Cube
-    private var textureId: Int = 0
     var selectedPlanet = 0
 
     private val projectionMatrix = FloatArray(16)
@@ -68,9 +67,6 @@ class GL(private val context: Context) : GLSurfaceView.Renderer {
         GLES20.glEnable(GLES20.GL_DEPTH_TEST)
         GLES20.glDepthFunc(GLES20.GL_ALWAYS)
 
-        //sun = Sphere(radius = 0.6f)
-        //sun.initialize()
-
         planets = listOf(
             Sphere(radius = 0.6f),
             Sphere(radius = 0.3f),
@@ -98,7 +94,6 @@ class GL(private val context: Context) : GLSurfaceView.Renderer {
         planetTextures[8] = loadTexture(context, R.drawable.uranus)
         planetTextures[9] = loadTexture(context, R.drawable.neptune)
 
-        //textureId = loadTexture(context, R.drawable.sun)
 
         square = Square(context)
         square.initialize()
@@ -138,15 +133,12 @@ class GL(private val context: Context) : GLSurfaceView.Renderer {
             cube.draw(mVPMatrix)
         }
 
-        // Отрисовка планет с орбитами
         for (i in 1 until planets.size) {
-            // Отрисовка орбиты
             if (i == 4) continue
             drawOrbit(orbitRadii[i])
 
             Matrix.setIdentityM(modelMatrix, 0)
 
-            // Вращение планеты вокруг Солнца
             val angle = planetAngles[i]
             val radius = orbitRadii[i]
             val x = radius * cos(Math.toRadians(angle.toDouble())).toFloat()
@@ -156,13 +148,10 @@ class GL(private val context: Context) : GLSurfaceView.Renderer {
             Matrix.multiplyMM(mVPMatrix, 0, projectionMatrix, 0, viewMatrix, 0)
             Matrix.multiplyMM(mVPMatrix, 0, mVPMatrix, 0, modelMatrix, 0)
 
-            // Отрисовка планеты с текстурой
             planets[i].draw(mVPMatrix, planetTextures[i])
 
-            // Обновление угла для орбитального движения
             planetAngles[i] = (planetAngles[i] + rotationSpeeds[i]) % 360
 
-            // Вращение планеты вокруг своей оси
             Matrix.rotateM(modelMatrix, 0, planetAngles[i] * planetRotationSpeeds[i], 0f, 1f, 0f)
             Matrix.multiplyMM(mVPMatrix, 0, projectionMatrix, 0, viewMatrix, 0)
             Matrix.multiplyMM(mVPMatrix, 0, mVPMatrix, 0, modelMatrix, 0)
@@ -180,12 +169,9 @@ class GL(private val context: Context) : GLSurfaceView.Renderer {
                 cube.draw(mVPMatrix)
             }
 
-            // Специальный случай для Земли и Луны
             if (i == 3) {
-                // Отрисовка Луны
                 Matrix.setIdentityM(modelMatrix, 0)
 
-                // Позиционирование Луны на основе положения Земли
                 val moonAngle = planetAngles[4]
                 val moonRadius = 0.5f
                 val moonX = (radius * cos(Math.toRadians(angle.toDouble())).toFloat()) + (moonRadius * cos(Math.toRadians(moonAngle.toDouble())).toFloat())
@@ -195,16 +181,13 @@ class GL(private val context: Context) : GLSurfaceView.Renderer {
                 Matrix.multiplyMM(mVPMatrix, 0, projectionMatrix, 0, viewMatrix, 0)
                 Matrix.multiplyMM(mVPMatrix, 0, mVPMatrix, 0, modelMatrix, 0)
 
-                // Вращение Луны вокруг своей оси
                 Matrix.rotateM(modelMatrix, 0, moonRotationAngle, 0f, 1f, 0f)
                 Matrix.multiplyMM(mVPMatrix, 0, projectionMatrix, 0, viewMatrix, 0)
                 Matrix.multiplyMM(mVPMatrix, 0, mVPMatrix, 0, modelMatrix, 0)
 
-                // Отрисовка Луны
                 planets[4].draw(mVPMatrix, planetTextures[4])
                 planetAngles[4] = (planetAngles[4] + 2f) % 360
 
-                // Обновление угла вращения Луны
                 moonRotationAngle = (moonRotationAngle + 1f) % 360
 
                 if (selectedPlanet == 4) {
@@ -246,8 +229,6 @@ class GL(private val context: Context) : GLSurfaceView.Renderer {
         GLES20.glDisableVertexAttribArray(positionHandle)
     }
 
-
-
     private fun loadLineShaderProgram(): Int {
         val vertexShader = loadShader(GLES20.GL_VERTEX_SHADER, readShaderFromFile("line_vertex_shader.glsl"))
         val fragmentShader = loadShader(GLES20.GL_FRAGMENT_SHADER, readShaderFromFile("line_fragment_shader.glsl"))
@@ -288,7 +269,6 @@ class GL(private val context: Context) : GLSurfaceView.Renderer {
         Matrix.setLookAtM(viewMatrix, 0, 0f, 0f, 5f, 0f, 0f, 0f, 0f, 1f, 0f)
     }
 
-    // Load texture helper function
     private fun loadTexture(context: Context, resourceId: Int): Int {
         val textureHandle = IntArray(1)
 
