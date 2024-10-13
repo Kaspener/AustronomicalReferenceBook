@@ -6,6 +6,8 @@ import android.opengl.GLES20
 import android.opengl.GLSurfaceView
 import android.opengl.GLUtils
 import android.opengl.Matrix
+import android.os.Handler
+import android.os.Looper
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
@@ -18,6 +20,12 @@ import kotlin.math.sin
 class GL(private val context: Context) : GLSurfaceView.Renderer {
     private lateinit var square: Square
     private lateinit var cube: Cube
+    private lateinit var blackHole: Sphere
+    private var blackHoleTexture: Int = 0
+    private var blackHolePositionX = 5f // Начальная позиция X (в правом верхнем углу)
+    private var blackHolePositionY = 5f // Начальная позиция Y (в правом верхнем углу)
+    private val blackHoleSpeed = 0.2f // Скорость движения черной дыры
+    private var isBlackHoleVisible = true // Флаг видимости черной дыры
     var selectedPlanet = 0
 
     private val projectionMatrix = FloatArray(16)
@@ -93,6 +101,7 @@ class GL(private val context: Context) : GLSurfaceView.Renderer {
         planetTextures[7] = loadTexture(context, R.drawable.saturn)
         planetTextures[8] = loadTexture(context, R.drawable.uranus)
         planetTextures[9] = loadTexture(context, R.drawable.neptune)
+        blackHoleTexture = loadTexture(context, R.drawable.blackhole)
 
 
         square = Square(context)
@@ -100,6 +109,9 @@ class GL(private val context: Context) : GLSurfaceView.Renderer {
 
         cube = Cube()
         cube.initialize()
+
+        blackHole = Sphere(radius = 0.5f)
+        blackHole.initialize()
 
         lineProgram = loadLineShaderProgram()
     }
@@ -121,6 +133,7 @@ class GL(private val context: Context) : GLSurfaceView.Renderer {
         Matrix.multiplyMM(mVPMatrix, 0, projectionMatrix, 0, viewMatrix, 0)
         Matrix.multiplyMM(mVPMatrix, 0, mVPMatrix, 0, modelMatrix, 0)
         planets[0].draw(mVPMatrix, planetTextures[0]) //sun
+
 
         if (selectedPlanet == 0) {
             Matrix.setIdentityM(modelMatrix, 0)
@@ -203,8 +216,34 @@ class GL(private val context: Context) : GLSurfaceView.Renderer {
                 }
             }
         }
+        if (isBlackHoleVisible) {
+            blackHolePositionX -= blackHoleSpeed // Движение влево
+            blackHolePositionY -= blackHoleSpeed // Движение вниз
+
+            // Проверка, вышла ли черная дыра за пределы экрана
+            if (blackHolePositionX < -5f || blackHolePositionY < -5f) {
+                resetBlackHole() // Сброс позиции черной дыры
+            }
+
+            // Отрисовка черной дыры
+            Matrix.setIdentityM(modelMatrix, 0)
+            Matrix.translateM(modelMatrix, 0, blackHolePositionX, blackHolePositionY, -5f)
+            Matrix.multiplyMM(mVPMatrix, 0, projectionMatrix, 0, viewMatrix, 0)
+            Matrix.multiplyMM(mVPMatrix, 0, mVPMatrix, 0, modelMatrix, 0)
+
+            blackHole.draw(mVPMatrix, loadTexture(context, R.drawable.blackhole)) // Рисуем черную дыру с текстурой
+        }
+
+
         GLES20.glDisable(GLES20.GL_BLEND)
     }
+
+    private fun resetBlackHole() {
+        var rand = (1..3).random()
+        blackHolePositionX = 50f*rand
+        blackHolePositionY = 50f*rand
+    }
+
     private fun drawOrbit(radius: Float) {
         val numPoints = 100
         val orbitVertices = FloatArray(numPoints * 2)
